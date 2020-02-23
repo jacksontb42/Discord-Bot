@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const math = require('mathjs');
 
-const token = 'Njc5NDgzNDE5Njc1MzI4NTQ4.XlLUjw.GMneLktlzy_7atPJps-vkoznsjw';
+const token = 'Njc5NDgzNDE5Njc1MzI4NTQ4.XlLhGg.Sq-wAc5eez6bDfbT9kZsEqplPv0';
 
 const { Users, CurrencyShop } = require('./dbObjects');
 const { Op } = require('sequelize');
@@ -132,10 +132,17 @@ client.on('message', async message => {
 			const user = await Users.findOne({ where: { user_id: target.id } });
 			if (!item) return message.channel.send('That item doesn\'t exist.');
 			const items = await user.getItems();
-			// if(items.item.amount < 1){
-				if(items[items.indexOf(item)].amount < 1){
+			const correctitem = items.find((items) => {
+				return items.item.name == item.name
+			});
+			if(correctitem.amount < 1){
 				return message.channel.send(`You don't have enough of that item.`);
 			}
+			/* if (!user.hasitems.contains(item.name)){
+				multiplier = multiplier + 1;
+				user.hasitems.push(item.name);
+				console.log(user.hasitems);
+			} */
 			await user.subtractItem(item);
 }});
 
