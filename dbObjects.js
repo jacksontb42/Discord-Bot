@@ -31,6 +31,10 @@ Users.prototype.subtractItem = async function(item) {
 		where: { user_id: this.user_id, item_id: item.id },
 	});
 
+	if (userItem < 1){
+		// return message.channel.send(`You don't have enough of that item' , ${message.author}`);
+		return 1;
+	};
 	if (userItem) {
 		userItem.amount -= 1;
 		return userItem.save();
