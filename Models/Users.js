@@ -3,6 +3,10 @@ module.exports = (sequelize, DataTypes) => {
 		user_id: {
 			type: DataTypes.STRING,
 			primaryKey: true,
+		
+		},
+		user_time: {
+			type: DataTypes.INTEGER,
 		},
 		balance: {
 			type: DataTypes.INTEGER,
