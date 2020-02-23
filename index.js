@@ -1,7 +1,8 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
+const math = require('mathjs');
 
-const token = 'Njc5NDgzNDE5Njc1MzI4NTQ4.XlIo0g.u9epbGutYC2bhFTIz72MpQKSJmQ';
+const token = 'Njc5NDgzNDE5Njc1MzI4NTQ4.XlLHOA.DQei2euixY1ZWO5z9ClibRkAak4';
 
 const { Users, CurrencyShop } = require('./dbObjects');
 const { Op } = require('sequelize');
@@ -29,6 +30,19 @@ Reflect.defineProperty(currency, 'getBalance', {
 	value: function getBalance(id) {
 		const user = currency.get(id);
 		return user ? user.balance : 0;
+	},
+});
+
+Reflect.defineProperty(currency, 'use', {
+	value: async function use(id, item) {
+		const user = currency.get(id);
+		if (user) {
+			user.use(item);
+			return user.save();
+		}
+		const newUser = await Users.create({ user_id: id, balance: amount });
+		currency.set(id, newUser);
+		return newUser;
 	},
 });
 
@@ -88,7 +102,7 @@ client.on('message', async message => {
 			const items = await CurrencyShop.findAll();
 			return message.channel.send(items.map(i => `${i.name}: ${i.cost}💰`).join('\n'), { code: true });
 		} 
-		else if (command === 'leaderboard') {
+		else if (command === 'leaderboard' || command === "lb") {
 			return message.channel.send(
 				currency.sort((a, b) => b.balance - a.balance)
 					.filter(user => client.users.has(user.user_id))
@@ -108,10 +122,16 @@ client.on('message', async message => {
 			var shittime = date.getTime();
 			var time = shittime - user_time;
 			const user = message.author.id;
-			currency.add(message.author.id,time/1000);
-			var shortTime = time/1000;
-			return message.channel.send('Shitting has concluded.' + ' You spent ' + shortTime.toFixed(2) + ' seconds shitting.');
+			var shortTime = math.ceil(time/1000);
+			currency.add(message.author.id,shortTime);
+			return message.channel.send('Shitting has concluded.' + ' You spent ' + shortTime + ' seconds shitting.');
 		}
+		else if (command === 'use') {
+			const item = await CurrencyShop.findOne({ where: { name: { [Op.like]: commandArgs } } });
+			if (!item) return message.channel.send('That item doesn\'t exist.');
+			if ((items.map(t => {t.amount})) < 1) {
+				return message.channel.send(`You don't have enough currency, ${message.author}`);
+			}
 });
 
 
