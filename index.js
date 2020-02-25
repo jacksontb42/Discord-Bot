@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const math = require('mathjs');
 
-const token = 'Njc5NDgzNDE5Njc1MzI4NTQ4.XlR7eg.jP2xHNqqF-BFvV9qPFC3kc01Gc4';
+const token = 'Njc5NDgzNDE5Njc1MzI4NTQ4.XlSBTg.S52dhztx3SCjiiKQj7IepQS3SOw';
 
 const { Users, CurrencyShop } = require('./dbObjects');
 const { Op } = require('sequelize');
@@ -128,8 +128,7 @@ client.on('message', async message => {
 		}
 		else if (command === 'use') {
 			const item = await CurrencyShop.findOne({ where: { name: { [Op.like]: commandArgs } } });
-			const target = message.mentions.users.first() || message.author;
-			const user = await Users.findOne({ where: { user_id: target.id } });
+			const user = await Users.findOne({ where: { user_id: message.author.id } });
 			if (!item) return message.channel.send('That item doesn\'t exist.');
 			const items = await user.getItems();
 			const correctitem = items.find((items) => {
@@ -138,10 +137,10 @@ client.on('message', async message => {
 			if(correctitem.amount < 1){
 				return message.channel.send(`You don't have enough of that item.`);
 			}
-			if (!user.hasitems.contains(item.name)){
-				multiplier = multiplier + 1;
-				user.hasitems.push(item.name);
-				console.log(user.hasitems);
+			if (correctitem.amount >= 1){
+				console.log (item.modifier);
+				user.user_mult = user.user_mult + item.modifier;
+				console.log(user.user_mult);
 			}
 			await user.subtractItem(item);
 }});
