@@ -5,11 +5,12 @@ module.exports = (sequelize, DataTypes) => {
 		amount: {
 			type: DataTypes.INTEGER,
 			allowNull: false,
-			'default': 0,
+			defaultValue: 0,
 		},
 		modifier: {
 			type: DataTypes.INTEGER,
-			'default': 0,
+			allowNull: false,
+			defaultValue: 0,
 		},
 	}, {
 		timestamps: false,

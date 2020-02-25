@@ -3,7 +3,7 @@ const client = new Discord.Client();
 const math = require('mathjs');
 const util = require('util')
 
-const token = 'Njc5NDgzNDE5Njc1MzI4NTQ4.XlSBTg.S52dhztx3SCjiiKQj7IepQS3SOw';
+const token = 'Njc5NDgzNDE5Njc1MzI4NTQ4.XlSNSg.XxnnhV0XMTGWhTdVuF-m2GqbwyY';
 
 const { Users, CurrencyShop } = require('./dbObjects');
 const { Op } = require('sequelize');
@@ -139,9 +139,8 @@ client.on('message', async message => {
 				return message.channel.send(`You don't have enough of that item.`);
 			}
 			if (correctitem.amount >= 1){
-				console.log (util.inspect(correctitem));
-				// user.user_mult = user.user_mult + item.modifier;
-				// console.log(util.inspect(user));
+				user.user_mult = user.user_mult + item.modifier;
+				console.log(util.inspect(user));
 			}
 			await user.subtractItem(item);
 }});

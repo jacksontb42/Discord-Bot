@@ -16,6 +16,7 @@ module.exports = (sequelize, DataTypes) => {
 		user_mult: {
 			type: DataTypes.INTEGER,
 			defaultValue: 1,
+			allowNull: false,
 		}
 	}, {
 		timestamps: false,

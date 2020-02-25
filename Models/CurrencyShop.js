@@ -8,6 +8,10 @@ module.exports = (sequelize, DataTypes) => {
 			type: DataTypes.INTEGER,
 			allowNull: false,
 		},
+		modifier: {
+			type: DataTypes.INTEGER,
+			unique: true,
+		},
 	}, {
 		timestamps: false,
 	});

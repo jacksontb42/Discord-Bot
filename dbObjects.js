@@ -23,7 +23,7 @@ Users.prototype.addItem = async function(item) {
 		return userItem.save();
 	}
 
-	return UserItems.create({ user_id: this.user_id, item_id: item.id, amount: 1 });
+	return UserItems.create({ user_id: this.user_id, item_id: item.id, amount: 1, modifier: item.modifier });
 };
 
 Users.prototype.subtractItem = async function(item) {
