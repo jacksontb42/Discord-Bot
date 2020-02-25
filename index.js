@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const math = require('mathjs');
 
-const token = 'Njc5NDgzNDE5Njc1MzI4NTQ4.XlLhGg.Sq-wAc5eez6bDfbT9kZsEqplPv0';
+const token = 'Njc5NDgzNDE5Njc1MzI4NTQ4.XlR7eg.jP2xHNqqF-BFvV9qPFC3kc01Gc4';
 
 const { Users, CurrencyShop } = require('./dbObjects');
 const { Op } = require('sequelize');
@@ -62,7 +62,7 @@ client.on('message', async message => {
 
 	if (command === 'balance' || command === 'bal') {
 		const target = message.mentions.users.first() || message.author;
-		return message.channel.send(`${target.tag} has ${currency.getBalance(target.id)}💰`);
+		return message.channel.send(`${target.tag} has ${currency.getBalance(target.id)}💩`);
 	} 
 		else if (command === 'inventory') {
 			const target = message.mentions.users.first() || message.author;
@@ -83,7 +83,7 @@ client.on('message', async message => {
 			currency.add(message.author.id, -transferAmount);
 			currency.add(transferTarget.id, transferAmount);
 
-			return message.channel.send(`Successfully transferred ${transferAmount}💰 to ${transferTarget.tag}. Your current balance is ${currency.getBalance(message.author.id)}💰`); 
+			return message.channel.send(`Successfully transferred ${transferAmount}💩 to ${transferTarget.tag}. Your current balance is ${currency.getBalance(message.author.id)}💩`); 
 		}  */
 		else if (command === 'buy') {
 			const item = await CurrencyShop.findOne({ where: { name: { [Op.like]: commandArgs } } });
@@ -100,14 +100,14 @@ client.on('message', async message => {
 		} 
 		else if (command === 'shop') {
 			const items = await CurrencyShop.findAll();
-			return message.channel.send(items.map(i => `${i.name}: ${i.cost}💰`).join('\n'), { code: true });
+			return message.channel.send(items.map(i => `${i.name}: ${i.cost}💩`).join('\n'), { code: true });
 		} 
 		else if (command === 'leaderboard' || command === "lb") {
 			return message.channel.send(
 				currency.sort((a, b) => b.balance - a.balance)
 					.filter(user => client.users.has(user.user_id))
 					.first(10)
-					.map((user, position) => `(${position + 1}) ${(client.users.get(user.user_id).tag)}: ${user.balance}💰`)
+					.map((user, position) => `(${position + 1}) ${(client.users.get(user.user_id).tag)}: ${user.balance}💩`)
 					.join('\n'),
 				{ code: true }
 			);
@@ -138,11 +138,11 @@ client.on('message', async message => {
 			if(correctitem.amount < 1){
 				return message.channel.send(`You don't have enough of that item.`);
 			}
-			/* if (!user.hasitems.contains(item.name)){
+			if (!user.hasitems.contains(item.name)){
 				multiplier = multiplier + 1;
 				user.hasitems.push(item.name);
 				console.log(user.hasitems);
-			} */
+			}
 			await user.subtractItem(item);
 }});
 

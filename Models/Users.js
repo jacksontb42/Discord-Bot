@@ -13,15 +13,10 @@ module.exports = (sequelize, DataTypes) => {
 			defaultValue: 0,
 			allowNull: false,
 		},
-		user_multiplier: {
+		user_mult: {
 			type: DataTypes.INTEGER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-		user_hasused: {
-			type: DataTypes.ARRAY(DataTypes.STRING),
-			allowNull: true,
-		},
+			defaultValue: 1,
+		}
 	}, {
 		timestamps: false,
 	});
