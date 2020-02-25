@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const math = require('mathjs');
+const util = require('util')
 
 const token = 'Njc5NDgzNDE5Njc1MzI4NTQ4.XlSBTg.S52dhztx3SCjiiKQj7IepQS3SOw';
 
@@ -138,9 +139,9 @@ client.on('message', async message => {
 				return message.channel.send(`You don't have enough of that item.`);
 			}
 			if (correctitem.amount >= 1){
-				console.log (item.modifier);
-				user.user_mult = user.user_mult + item.modifier;
-				console.log(user.user_mult);
+				console.log (util.inspect(correctitem));
+				// user.user_mult = user.user_mult + item.modifier;
+				// console.log(util.inspect(user));
 			}
 			await user.subtractItem(item);
 }});
