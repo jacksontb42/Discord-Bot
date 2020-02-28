@@ -3,7 +3,7 @@ const client = new Discord.Client();
 const math = require('mathjs');
 const util = require('util')
 
-const token = 'Njc5NDgzNDE5Njc1MzI4NTQ4.XlSNSg.XxnnhV0XMTGWhTdVuF-m2GqbwyY';
+const token = 'Njc5NDgzNDE5Njc1MzI4NTQ4.XlXYUg.TUUWYgt3K-elkTKXcXcr1G_aUtc';
 
 const { Users, CurrencyShop } = require('./dbObjects');
 const { Op } = require('sequelize');
@@ -57,6 +57,15 @@ client.on('message', async message => {
 	if (message.author.bot) return;
 
 	if (!message.content.startsWith(PREFIX)) return;
+		else {
+			const user = currency.get(message.author.id);
+			if (user) return;
+				else {
+					const newUser = await Users.create({ user_id: message.author.id, balance: 0 });
+					currency.set(message.author.id, newUser);
+					return newUser;
+			};
+		};
 	const input = message.content.slice(PREFIX.length).trim();
 	if (!input.length) return;
 	const [, command, commandArgs] = input.match(/(\w+)\s*([\s\S]*)/);
@@ -116,16 +125,21 @@ client.on('message', async message => {
 		else if (command === 'beginshit' || command === 'bs') {
 			var date = new Date();
 			user_time = date.getTime();
+			const user = await Users.findOne({ where: { user_id: message.author.id } });
+			console.log(user.user_mult);
 			return message.channel.send('Shitting has commenced.');
 		}
 		else if (command === 'endshit' || command === 'es') {
 			var date = new Date();
 			var shittime = date.getTime();
 			var time = shittime - user_time;
-			const user = message.author.id;
+			const user = await Users.findOne({ where: { user_id: message.author.id } });
 			var shortTime = math.ceil(time/1000);
+			var adjustedTime = shortTime * user.user_mult;
+			console.log(user.user_mult);
+			console.log(adjustedTime);
 			currency.add(message.author.id,shortTime);
-			return message.channel.send('Shitting has concluded.' + ' You spent ' + shortTime + ' seconds shitting.');
+			return message.channel.send('Shitting has concluded.' + ' You spent ' + shortTime + ' seconds shitting. You');
 		}
 		else if (command === 'use') {
 			const item = await CurrencyShop.findOne({ where: { name: { [Op.like]: commandArgs } } });
@@ -140,7 +154,6 @@ client.on('message', async message => {
 			}
 			if (correctitem.amount >= 1){
 				user.user_mult = user.user_mult + item.modifier;
-				console.log(util.inspect(user));
 			}
 			await user.subtractItem(item);
 }});

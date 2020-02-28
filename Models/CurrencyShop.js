@@ -9,8 +9,7 @@ module.exports = (sequelize, DataTypes) => {
 			allowNull: false,
 		},
 		modifier: {
-			type: DataTypes.INTEGER,
-			unique: true,
+			type: DataTypes.DECIMAL,
 		},
 	}, {
 		timestamps: false,

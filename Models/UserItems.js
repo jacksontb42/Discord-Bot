@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
 			defaultValue: 0,
 		},
 		modifier: {
-			type: DataTypes.INTEGER,
+			type: DataTypes.DECIMAL,
 			allowNull: false,
 			defaultValue: 0,
 		},
