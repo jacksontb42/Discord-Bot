@@ -1,17 +1,17 @@
 const Discord = require('discord.js');
-const client = new Discord.Client();
 const math = require('mathjs');
-const util = require('util')
-
-const token = 'Njc5NDgzNDE5Njc1MzI4NTQ4.XlXYUg.TUUWYgt3K-elkTKXcXcr1G_aUtc';
-
-const { Users, CurrencyShop } = require('./dbObjects');
+const util = require('util');
 const { Op } = require('sequelize');
-const currency = new Discord.Collection();
+
+const { Users, CurrencyShop, UserItems } = require('./dbObjects');
+
+const token = 'Njc5NDgzNDE5Njc1MzI4NTQ4.Xlxp4Q.uQr5C90GBCxKvlorTesKjssFi_Y';
 const PREFIX = '!';
+const currency = new Discord.Collection();
+const client = new Discord.Client();
 
 client.on('ready', () =>{
-    console.log("This bot is online.")
+    console.log("This bot is online.");
 })
 
 Reflect.defineProperty(currency, 'add', {
@@ -57,106 +57,134 @@ client.on('message', async message => {
 	if (message.author.bot) return;
 
 	if (!message.content.startsWith(PREFIX)) return;
-		else {
-			const user = currency.get(message.author.id);
-			if (user) return;
-				else {
-					const newUser = await Users.create({ user_id: message.author.id, balance: 0 });
-					currency.set(message.author.id, newUser);
-					return newUser;
-			};
-		};
+
+	// In case this is the first time this user has messaged in the server, we want to register them with shitbot
+	const user = currency.get(message.author.id);
+	if (!user){
+		console.log(`New user detected! Adding new user ${message.author.id} to user database`)
+		const newUserEntry = await Users.create({ user_id: message.author.id, balance: 0 });
+		currency.set(message.author.id, newUserEntry);
+		const newInvEntry = await UserItems.create({ user_id: message.author.id});
+
+	};
+	// End user registration
+
+	// Process our message (remove prefix, check for length, and regEx to separate command and arguments)
 	const input = message.content.slice(PREFIX.length).trim();
 	if (!input.length) return;
 	const [, command, commandArgs] = input.match(/(\w+)\s*([\s\S]*)/);
+	// End message processing
 
+	// begin actions based on result of command
 	if (command === 'balance' || command === 'bal') {
 		const target = message.mentions.users.first() || message.author;
 		return message.channel.send(`${target.tag} has ${currency.getBalance(target.id)}💩`);
+
 	} 
-		else if (command === 'inventory') {
-			const target = message.mentions.users.first() || message.author;
-			const user = await Users.findOne({ where: { user_id: target.id } });
-			const items = await user.getItems();
+	else if (command === 'inventory' || command === 'inv') {
+		const messageTarget = message.mentions.users.first() || message.author;
+		const databaseTarget = await Users.findOne({ where: { user_id: messageTarget.id } });
+		const items = await databaseTarget.getItems(databaseTarget.user_id).filter((item) => {
+			return item.item_id != null || item.item_id != undefined;
+		})
 
-			if (!items.length) return message.channel.send(`${target.tag} has nothing!`);
-			return message.channel.send(`${target.tag} currently has ${items.map(t => `${t.amount} ${t.item.name}`).join(', ')}`);
-		}  /* else if (command === 'transfer') {
-			const currentAmount = currency.getBalance(message.author.id);
-			const transferAmount = commandArgs.split(/ +/).find(arg => !/<@!?\d+>/.test(arg));
-			const transferTarget = message.mentions.users.first();
+		if (!items || items.length <= 0) return message.channel.send(`${messageTarget.tag} has nothing!`);
+		return message.channel.send(`${messageTarget.tag} currently has \n${items.map(t => `${t.amount} ${t.item.name}`).join('\n')}`);
 
-			if (!transferAmount || isNaN(transferAmount)) return message.channel.send(`Sorry ${message.author}, that's an invalid amount`);
-			if (transferAmount > currentAmount) return message.channel.send(`Sorry ${message.author} you don't have that much.`);
-			if (transferAmount <= 0) return message.channel.send(`Please enter an amount greater than zero, ${message.author}`);
-
-			currency.add(message.author.id, -transferAmount);
-			currency.add(transferTarget.id, transferAmount);
-
-			return message.channel.send(`Successfully transferred ${transferAmount}💩 to ${transferTarget.tag}. Your current balance is ${currency.getBalance(message.author.id)}💩`); 
-		}  */
-		else if (command === 'buy') {
-			const item = await CurrencyShop.findOne({ where: { name: { [Op.like]: commandArgs } } });
-			if (!item) return message.channel.send('That item doesn\'t exist.');
-			if (item.cost > currency.getBalance(message.author.id)) {
-				return message.channel.send(`You don't have enough currency, ${message.author}`);
-			}
-
-			const user = await Users.findOne({ where: { user_id: message.author.id } });
-			currency.add(message.author.id, -item.cost);
-			await user.addItem(item);
-
-			message.channel.send(`You've bought a ${item.name}`);
-		} 
-		else if (command === 'shop') {
-			const items = await CurrencyShop.findAll();
-			return message.channel.send(items.map(i => `${i.name}: ${i.cost}💩`).join('\n'), { code: true });
-		} 
-		else if (command === 'leaderboard' || command === "lb") {
-			return message.channel.send(
-				currency.sort((a, b) => b.balance - a.balance)
-					.filter(user => client.users.has(user.user_id))
-					.first(10)
-					.map((user, position) => `(${position + 1}) ${(client.users.get(user.user_id).tag)}: ${user.balance}💩`)
-					.join('\n'),
-				{ code: true }
-			);
-		} 
-		else if (command === 'beginshit' || command === 'bs') {
-			var date = new Date();
-			user_time = date.getTime();
-			const user = await Users.findOne({ where: { user_id: message.author.id } });
-			console.log(user.user_mult);
-			return message.channel.send('Shitting has commenced.');
+	}
+	else if (command === 'buy') {
+		const item = await CurrencyShop.findOne({ where: { name: { [Op.like]: commandArgs.toLowerCase() } } });
+		if (!item) return message.channel.send('That item doesn\'t exist.');
+		if (item.cost > currency.getBalance(message.author.id)) {
+			return message.channel.send(`You don't have enough currency, ${message.author}`);
 		}
-		else if (command === 'endshit' || command === 'es') {
-			var date = new Date();
-			var shittime = date.getTime();
-			var time = shittime - user_time;
-			const user = await Users.findOne({ where: { user_id: message.author.id } });
-			var shortTime = math.ceil(time/1000);
-			var adjustedTime = shortTime * user.user_mult;
-			console.log(user.user_mult);
-			console.log(adjustedTime);
-			currency.add(message.author.id,shortTime);
-			return message.channel.send('Shitting has concluded.' + ' You spent ' + shortTime + ' seconds shitting. You');
+		const user = await Users.findOne({ where: { user_id: message.author.id } });
+		currency.add(message.author.id, -item.cost);
+		await user.addItem(item, message.author.id);
+
+		message.channel.send(`You've bought a ${item.name}`);
+
+	} 
+	else if (command === 'shop') {
+		const items = await CurrencyShop.findAll();
+		return message.channel.send(items.map(i => `${i.name}: ${i.cost}💩`).join('\n'), { code: true });
+
+	} 
+	else if (command === 'leaderboard' || command === "lb") {
+		return message.channel.send(
+			currency.sort((a, b) => b.balance - a.balance)
+				.filter(user => client.users.has(user.user_id))
+				.first(10)
+				.map((user, position) => `(${position + 1}) ${(client.users.get(user.user_id).tag)}: ${user.balance}💩`)
+				.join('\n'),
+			{ code: true }
+		);
+
+	} 
+	else if (command === 'beginshit' || command === 'bs') {
+		const user = await Users.findOne({ where: { user_id: message.author.id } });
+		const date = new Date();
+		const userTime = date.getTime();
+		await user.update({
+			user_time: userTime
+		});
+		return message.channel.send('Shitting has commenced.');
+
+	}
+	else if (command === 'endshit' || command === 'es') {
+		const user = await Users.findOne({ where: { user_id: message.author.id } });
+		if(user.user_time < 0){
+			return message.channel.send(`You're trying to doubleshit! That's not allowed.`);
 		}
-		else if (command === 'use') {
-			const item = await CurrencyShop.findOne({ where: { name: { [Op.like]: commandArgs } } });
-			const user = await Users.findOne({ where: { user_id: message.author.id } });
-			if (!item) return message.channel.send('That item doesn\'t exist.');
-			const items = await user.getItems();
-			const correctitem = items.find((items) => {
-				return items.item.name == item.name
+		const userTime = user.user_time;
+		const date = new Date();
+		const shitTime = date.getTime();
+		const time = shitTime - userTime;
+		const shortTime = math.ceil(time/1000);
+		//If you want decimals, remove math.floor
+		const adjustedTime = math.floor(shortTime * user.user_mult);
+		await user.update({
+			user_mult: 1,
+			user_time: -1
+		});
+		currency.add(message.author.id,adjustedTime);
+		return message.channel.send(`Shitting has concluded. You spent ${shortTime} seconds shitting. You earned ${adjustedTime} 💩`);
+
+	}
+	else if (command === 'use') {
+		const itemToUse = await CurrencyShop.findOne({ where: { name: { [Op.like]: commandArgs.toLowerCase() } } });
+		const user = await Users.findOne({ where: { user_id: message.author.id } });
+		if (!itemToUse) return message.channel.send('That item doesn\'t exist.');
+
+		// for a user, go to the database, and get the items associated with jack
+		const userItems = await user.getItems(user.user_id);
+
+		// We have the items associated with jack, they're in a list called 'items'
+		// Now we will find the item jack is trying to use in the list 'items'
+		const correctItem = userItems.find((item) => {
+			return item.item_id == itemToUse.id
+		});
+
+		if(!correctItem || correctItem.amount < 1){
+			return message.channel.send(`You don't have enough of that item.`);
+		}
+		// If jack does have the item, the related modifier is added to the user and the item is removed from 'items'
+		if (correctItem.amount >= 1){
+			const newmult = user.user_mult + itemToUse.modifier;
+			await user.update({
+				user_mult: newmult
 			});
-			if(correctitem.amount < 1){
-				return message.channel.send(`You don't have enough of that item.`);
-			}
-			if (correctitem.amount >= 1){
-				user.user_mult = user.user_mult + item.modifier;
-			}
-			await user.subtractItem(item);
-}});
+		}
+		await user.subtractItem(itemToUse, user.user_id);
+
+		return message.channel.send(`You have used one ${itemToUse.name}! Your multiplier has increased by ${itemToUse.modifier}`)
+
+	} else if (command === 'multiplier' || command === 'mult'){
+		const user = await Users.findOne({ where: { user_id: message.author.id } });
+		return message.channel.send(`Your multiplier is ${user.user_mult}`)
+
+	}
+});
 
 
 client.login(token);

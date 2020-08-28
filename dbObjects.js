@@ -13,26 +13,32 @@ const UserItems = sequelize.import('models/UserItems');
 
 UserItems.belongsTo(CurrencyShop, { foreignKey: 'item_id', as: 'item' });
 
-Users.prototype.addItem = async function(item) {
+Users.prototype.addItem = async (item, external_user_id) => {
 	const userItem = await UserItems.findOne({
-		where: { user_id: this.user_id, item_id: item.id },
+		where: { user_id: external_user_id, item_id: item.id },
 	});
 
 	if (userItem) {
 		userItem.amount += 1;
 		return userItem.save();
 	}
+	else {
+		// The item doesn't exist in their inventory, so we need to tap the shop to get the info needed about the item we are looking for.
+		const itemToBuy = await CurrencyShop.findOne({where: {id: item.id}});
+		if(!itemToBuy){
+			throw TypeError("Item given does not exist in user inventories or shop")
+		}
+		return UserItems.create({ user_id: external_user_id, item_id: itemToBuy.id, amount: 1, modifier: itemToBuy.modifier });
+	} 
 
-	return UserItems.create({ user_id: this.user_id, item_id: item.id, amount: 1, modifier: item.modifier });
 };
 
-Users.prototype.subtractItem = async function(item) {
+Users.prototype.subtractItem = async (item, external_user_id) => {
 	const userItem = await UserItems.findOne({
-		where: { user_id: this.user_id, item_id: item.id },
+		where: { user_id: external_user_id, item_id: item.id },
 	});
 
 	if (userItem < 1){
-		// return message.channel.send(`You don't have enough of that item' , ${message.author}`);
 		return 1;
 	};
 	if (userItem) {
@@ -40,14 +46,17 @@ Users.prototype.subtractItem = async function(item) {
 		return userItem.save();
 	}
 
-	return UserItems.create({ user_id: this.user_id, item_id: item.id, amount: 1 });
+	return UserItems.create({ user_id: external_user_id, item_id: item.id, amount: 1 });
+
 };
 
-Users.prototype.getItems = function() {
-	return UserItems.findAll({
-		where: { user_id: this.user_id },
-		include: ['item'],
-	});
+Users.prototype.getItems = (external_user_id) => {
+	if(external_user_id) {
+		return UserItems.findAll({
+			where: { user_id: external_user_id },
+			include: ['item'],
+	})};
+
 };
 
 module.exports = { Users, CurrencyShop, UserItems };

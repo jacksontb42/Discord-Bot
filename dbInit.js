@@ -15,9 +15,9 @@ const force = process.argv.includes('--force') || process.argv.includes('-f');
 
 sequelize.sync({ force }).then(async () => {
 	const shop = [
-		CurrencyShop.upsert({ name: 'Percocet', cost: 1, modifier: 0.50 }),
-		CurrencyShop.upsert({ name: 'Gamer Boy Piss', cost: 1, modifier: 0.20 }),
-		CurrencyShop.upsert({ name: 'Gamer Girl Piss', cost: 1, modifier: 0.35 }),
+		CurrencyShop.upsert({ name: 'percocet', cost: 1, modifier: 0.50 }),
+		CurrencyShop.upsert({ name: 'gamer boy piss', cost: 1, modifier: 0.20 }),
+		CurrencyShop.upsert({ name: 'gamer girl piss', cost: 1, modifier: 0.35 }),
 	];
 	await Promise.all(shop);
 	console.log('Database synced');
