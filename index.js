@@ -5,7 +5,7 @@ const { Op } = require('sequelize');
 
 const { Users, CurrencyShop, UserItems } = require('./dbObjects');
 
-const token = 'Njc5NDgzNDE5Njc1MzI4NTQ4.Xlxp4Q.uQr5C90GBCxKvlorTesKjssFi_Y';
+const token = '';
 const PREFIX = '!';
 const currency = new Discord.Collection();
 const client = new Discord.Client();
