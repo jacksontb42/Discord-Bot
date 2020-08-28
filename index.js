@@ -1,11 +1,12 @@
 const Discord = require('discord.js');
 const math = require('mathjs');
 const util = require('util');
+const token = require('token');
 const { Op } = require('sequelize');
 
 const { Users, CurrencyShop, UserItems } = require('./dbObjects');
 
-const token = '';
+const token = token.token;
 const PREFIX = '!';
 const currency = new Discord.Collection();
 const client = new Discord.Client();
