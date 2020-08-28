@@ -1,1 +1,5 @@
-const token = '';
+const discordToken = '';
+
+module.exports = {
+    discordToken
+};
