@@ -82,30 +82,45 @@ client.on('message', async message => {
 	const [, command, commandArgs] = input.match(/(\w+)\s*([\s\S]*)/);
 	// End message processing
 	
+	// Define variables used in multiple cases
 	const user = await Users.findOne({ where: { user_id: message.author.id } });
+	var target = message.mentions.users.first() || message.author;
 	let userTime = undefined;
 	let date = undefined;
 	let items = undefined;
+	// End definition of variables
 
 	// begin actions based on result of command
 	switch (command) {
 		
+		case "help":
+			return message.channel.send(
+				`Welcome to ShitBot! These are the commands available to use.
+				**!help** - list all available commands
+				**!bs** - \"Begin shit\", this begins your shitting session and should be done as you walk away from your keyboard to take a shit
+				**!es** - \"End shit\", this ends your shitting session and should be done as you arrive back at your keyboard from taking a shit
+				**!bal** or **!balance** - displays your balance of shitbucks
+				**!inv** or **!inventory** - displays your current inventory of items
+				**!lb** or **!leaderboard** - displays the global leaderboard
+				**!shop** - displays the shop where you can spend your shitbucks on items to increase your shitting session multiplier
+				**!buy <item name>** - purchase an item from the shop, be sure to match the item name exactly
+				**!use <item name>** - use an item from your inventory to add it\'s multiplier effect to your current multiplier
+				**!mult** or **!multiplier** - display your current multiplier - to be applied and then removed on your next shitting session.`
+			);
 
 		case "bal":
 		case "balance":
-			const target = message.mentions.users.first() || message.author;
 			return message.channel.send(`${target.tag} has ${currency.getBalance(target.id)}💩`);	
 
 		case "inv":
 		case "inventory":
-			const messageTarget = message.mentions.users.first() || message.author;
-			const databaseTarget = await Users.findOne({ where: { user_id: messageTarget.id } });
+			const databaseTarget = await Users.findOne({ where: { user_id: target.id } });
 			items = await databaseTarget.getItems(databaseTarget.user_id).filter((item) => {
 				return item.item_id != null || item.item_id != undefined;
 			})
 
-			if (!items || items.length <= 0) return message.channel.send(`${messageTarget.tag} has nothing!`);
-			return message.channel.send(`${messageTarget.tag} currently has \n${items.map(t => `${t.amount} ${t.item.name}`).join('\n')}`);
+			if (!items || items.length <= 0) return message.channel.send(`${target.tag} has nothing!`);
+			return message.channel.send(`${target.tag} currently has \n${items.map(t => `${t.amount} ${t.item.name}`).join('\n')}`);
 
 		case "buy":
 			items = await CurrencyShop.findOne({ where: { name: { [Op.like]: commandArgs.toLowerCase() } } });
@@ -116,7 +131,7 @@ client.on('message', async message => {
 			currency.add(message.author.id, -items.cost);
 			await user.addItem(items, message.author.id);
 
-			message.channel.send(`You've bought a ${item.name}`);
+			message.channel.send(`You've bought a ${items.name}`);
 			break;
 
 		
