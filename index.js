@@ -1,6 +1,5 @@
 const Discord = require('discord.js');
 const math = require('mathjs');
-const util = require('util');
 const { Op } = require('sequelize');
 
 const {discordToken} = require('./token');
@@ -95,17 +94,17 @@ client.on('message', async message => {
 		
 		case "help":
 			return message.channel.send(
-				`Welcome to ShitBot! These are the commands available to use.
-				**!help** - list all available commands
-				**!bs** - \"Begin shit\", this begins your shitting session and should be done as you walk away from your keyboard to take a shit
-				**!es** - \"End shit\", this ends your shitting session and should be done as you arrive back at your keyboard from taking a shit
-				**!bal** or **!balance** - displays your balance of shitbucks
-				**!inv** or **!inventory** - displays your current inventory of items
-				**!lb** or **!leaderboard** - displays the global leaderboard
-				**!shop** - displays the shop where you can spend your shitbucks on items to increase your shitting session multiplier
-				**!buy <item name>** - purchase an item from the shop, be sure to match the item name exactly
-				**!use <item name>** - use an item from your inventory to add it\'s multiplier effect to your current multiplier
-				**!mult** or **!multiplier** - display your current multiplier - to be applied and then removed on your next shitting session.`
+`Welcome to ShitBot, **${target.tag}**! These are the commands available to use. \n
+**!help** - list all available commands
+**!bs** - \"Begin shit\", this begins your shitting session and should be done as you walk away from your keyboard to take a shit
+**!es** - \"End shit\", this ends your shitting session and should be done as you arrive back at your keyboard from taking a shit
+**!bal** or **!balance** - displays your balance of shitbucks
+**!inv** or **!inventory** - displays your current inventory of items
+**!lb** or **!leaderboard** - displays the global leaderboard
+**!shop** - displays the shop where you can spend your shitbucks on items to increase your shitting session multiplier
+**!buy <item name>** - purchase an item from the shop, be sure to match the item name exactly
+**!use <item name>** - use an item from your inventory to add it\'s multiplier effect to your current multiplier
+**!mult** or **!multiplier** - display your current multiplier - to be applied and then removed on your next shitting session.`
 			);
 
 		case "bal":
@@ -130,10 +129,7 @@ client.on('message', async message => {
 			}
 			currency.add(message.author.id, -items.cost);
 			await user.addItem(items, message.author.id);
-
-			message.channel.send(`You've bought a ${items.name}`);
-			break;
-
+			return message.channel.send(`You've bought a ${items.name}`);
 		
 		case "shop":
 			items = await CurrencyShop.findAll();
