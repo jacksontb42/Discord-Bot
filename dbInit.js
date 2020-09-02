@@ -7,9 +7,9 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 	storage: 'database.sqlite',
 });
 
-const CurrencyShop = sequelize.import('models/CurrencyShop');
-sequelize.import('models/Users');
-sequelize.import('models/UserItems');
+const CurrencyShop = sequelize.import('./Models/CurrencyShop');
+sequelize.import('./Models/Users');
+sequelize.import('./Models/UserItems');
 
 const force = process.argv.includes('--force') || process.argv.includes('-f');
 

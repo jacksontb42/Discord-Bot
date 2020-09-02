@@ -7,9 +7,9 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 	storage: 'database.sqlite',
 });
 
-const Users = sequelize.import('models/Users');
-const CurrencyShop = sequelize.import('models/CurrencyShop');
-const UserItems = sequelize.import('models/UserItems');
+const Users = sequelize.import('./Models/Users');
+const CurrencyShop = sequelize.import('./Models/CurrencyShop');
+const UserItems = sequelize.import('./Models/UserItems');
 
 UserItems.belongsTo(CurrencyShop, { foreignKey: 'item_id', as: 'item' });
 
