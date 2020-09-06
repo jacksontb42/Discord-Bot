@@ -17,13 +17,24 @@ findBuyItem = (external_buyitem_id) => {
 };
 
 findUseItem = (external_useitem_id) => {
-    console.log(`Database accessed for useitem id: ${external_buyitem_id}`)
+    console.log(`Database accessed for useitem id: ${external_useitem_id}`)
     return CurrencyShop.findOne({ where: { name: { [Op.like]: external_useitem_id.toLowerCase() } } });
 };
+
+findShopItems = () => {
+    console.log(`Database accessed for shop items`)
+    return CurrencyShop.findAll();
+};
+
+findUserBalances = () => {
+    return Users.findAll();
+}
 
 module.exports = {
     findSingleUser,
     findTargetUser,
     findBuyItem,
-    findUseItem
+    findUseItem,
+    findShopItems,
+    findUserBalances
 };

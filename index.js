@@ -54,7 +54,7 @@ Reflect.defineProperty(currency, 'use', {
 
 // Check database for current entries and log the end of startup process
 client.once('ready', async () => {
-	const storedBalances = await Users.findAll();
+	const storedBalances = await dbAccess.findUserBalances();
 	storedBalances.forEach(b => currency.set(b.user_id, b));
 	console.log(`Logged in as ${client.user.tag}!`);
 });
@@ -133,7 +133,7 @@ client.on('message', async message => {
 			return message.channel.send(`You've bought a ${items.name}`);
 		
 		case "shop":
-			items = await CurrencyShop.findAll();
+			items = await dbAccess.findShopItems();
 			return message.channel.send(items.map(i => `${i.name}: ${i.cost}💩`).join('\n'), { code: true });
 		
 		case "lb":
