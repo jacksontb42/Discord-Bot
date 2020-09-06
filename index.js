@@ -2,6 +2,7 @@ const Discord = require('discord.js');
 const math = require('mathjs');
 const { Op } = require('sequelize');
 
+const dbAccess = require('./dbAccess');
 const {discordToken} = require('./token');
 const { Users, CurrencyShop, UserItems } = require('./dbObjects');
 
@@ -53,7 +54,7 @@ Reflect.defineProperty(currency, 'use', {
 
 // Check database for current entries and log the end of startup process
 client.once('ready', async () => {
-	const storedBalances = await Users.findAll();
+	const storedBalances = await dbAccess.findUserBalances();
 	storedBalances.forEach(b => currency.set(b.user_id, b));
 	console.log(`Logged in as ${client.user.tag}!`);
 });
@@ -82,8 +83,8 @@ client.on('message', async message => {
 	// End message processing
 	
 	// Define variables used in multiple cases
-	const user = await Users.findOne({ where: { user_id: message.author.id } });
-	var target = message.mentions.users.first() || message.author;
+	const user = await dbAccess.findSingleUser(message.author.id);
+	let target = message.mentions.users.first() || message.author;
 	let userTime = undefined;
 	let date = undefined;
 	let items = undefined;
@@ -113,7 +114,7 @@ client.on('message', async message => {
 
 		case "inv":
 		case "inventory":
-			const databaseTarget = await Users.findOne({ where: { user_id: target.id } });
+			const databaseTarget = await dbAccess.findTargetUser(target.id);
 			items = await databaseTarget.getItems(databaseTarget.user_id).filter((item) => {
 				return item.item_id != null || item.item_id != undefined;
 			})
@@ -122,7 +123,7 @@ client.on('message', async message => {
 			return message.channel.send(`${target.tag} currently has \n${items.map(t => `${t.amount} ${t.item.name}`).join('\n')}`);
 
 		case "buy":
-			items = await CurrencyShop.findOne({ where: { name: { [Op.like]: commandArgs.toLowerCase() } } });
+			items = await dbAccess.findBuyItem(commandArgs);
 			if (!items) return message.channel.send('That item doesn\'t exist.');
 			if (items.cost > currency.getBalance(message.author.id)) {
 				return message.channel.send(`You don't have enough currency, ${message.author}`);
@@ -132,7 +133,7 @@ client.on('message', async message => {
 			return message.channel.send(`You've bought a ${items.name}`);
 		
 		case "shop":
-			items = await CurrencyShop.findAll();
+			items = await dbAccess.findShopItems();
 			return message.channel.send(items.map(i => `${i.name}: ${i.cost}💩`).join('\n'), { code: true });
 		
 		case "lb":
@@ -177,7 +178,7 @@ client.on('message', async message => {
 			return message.channel.send(`Shitting has concluded. You spent ${shortTime} seconds shitting. You earned ${adjustedTime} 💩`);
 
 		case "use":
-			const itemToUse = await CurrencyShop.findOne({ where: { name: { [Op.like]: commandArgs.toLowerCase() } } });
+			itemToUse = await dbAccess.findUseItem(commandArgs);
 			if (!itemToUse) return message.channel.send('That item doesn\'t exist.');
 
 			// for a user, go to the database, and get the items associated with jack
