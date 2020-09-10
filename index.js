@@ -207,6 +207,9 @@ client.on('message', async message => {
 		case "multiplier":
 			return message.channel.send(`Your multiplier is ${user.user_mult}`)
 
+		default:
+			return message.channel.send(`The command you tried to use is not recognized. Try using !help for a list of commands.`)
+
 }});
 
 
